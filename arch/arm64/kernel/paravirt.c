@@ -28,6 +28,9 @@
 #include <asm/qspinlock_paravirt.h>
 #include <asm/smp_plat.h>
 
+#define CREATE_TRACE_POINTS
+#include "trace-paravirt.h"
+
 struct pv_time_stolen_time_region {
 	struct pvclock_vcpu_stolen_time __rcu *kaddr;
 };
@@ -289,6 +292,7 @@ static void kvm_kick_cpu(int cpu)
 
 	arm_smccc_1_1_invoke(ARM_SMCCC_VENDOR_KICK_CPU, cpu, &res);
 
+	trace_kvm_kick_cpu("kvm kick cpu", raw_smp_processor_id(), cpu);
 }
 
 static void kvm_wait(u8 *ptr, u8 val)
@@ -303,8 +307,12 @@ static void kvm_wait(u8 *ptr, u8 val)
 	if (READ_ONCE(*ptr) != val)
 		goto out;
 
+	trace_kvm_wait("kvm wait before wfi", smp_processor_id());
+
 	dsb(sy);
 	wfi();
+
+	trace_kvm_wait("kvm wait after wfi", smp_processor_id());
 
 out:
 	local_irq_restore(flags);

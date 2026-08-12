@@ -52,3 +52,26 @@ There is a structure per VCPU of the guest.
 
 For the user space interface see
 :ref:`Documentation/virt/kvm/devices/vcpu.rst <kvm_arm_vcpu_pvlock_ctrl>`.
+
+PV spinlock kick
+----------------
+
+A second vendor hypercall is used by the paravirtualized queued spinlock:
+
+* VENDOR_KICK_CPU:  0xC6000096
+
+VENDOR_KICK_CPU
+
+    ============= ========    ==========
+    Function ID:  (uint32)    0xC6000096
+    Return value: (int64)     NOT_SUPPORTED (-1) or SUCCESS (0) if the vCPU is
+                              kicked by the hypervisor.
+    ============= ========    ==========
+
+A vCPU of a paravirtualized guest that is busywaiting in guest kernel mode for
+an event to occur (ex: a spinlock to become available) can execute WFI
+instruction once it has busy-waited for more than a threshold time-interval.
+Execution of WFI instruction would cause the hypervisor to put the vCPU to sleep
+until occurrence of an appropriate event. Another vCPU of the same guest can
+wakeup the sleeping vCPU by issuing the VENDOR_KICK_CPU hypercall,
+specifying the CPU id (reg1) of the vCPU to be woken up.

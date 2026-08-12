@@ -121,6 +121,17 @@ static bool kvm_smccc_test_fw_bmap(struct kvm_vcpu *vcpu, u32 func_id)
 	case ARM_SMCCC_VENDOR_HYP_KVM_PV_LOCK_FUNC_ID:
 		return test_bit(KVM_REG_ARM_VENDOR_HYP_BIT_PV_LOCK,
 				&smccc_feat->vendor_hyp_bmap_2);
+#ifdef CONFIG_PARAVIRT_SPINLOCKS
+	case ARM_SMCCC_VENDOR_KICK_CPU:
+		/*
+		 * NOPVSPINLOCK carries negative polarity: the bit is set by
+		 * default (feature disabled) and userspace clears it to enable
+		 * the PV queued spinlock. KICK_CPU is therefore allowed only
+		 * while the bit is clear.
+		 */
+		return !test_bit(KVM_REG_ARM_VENDOR_HYP_BIT_NOPVSPINLOCK,
+				 &smccc_feat->vendor_hyp_bmap);
+#endif
 	default:
 		return false;
 	}
@@ -265,6 +276,32 @@ static void kvm_prepare_hypercall_exit(struct kvm_vcpu *vcpu, u32 func_id)
 	};
 }
 
+#ifdef CONFIG_PARAVIRT_SPINLOCKS
+/*
+ * Wake up a WFI-state vCPU so that it can return to the guest and
+ * re-check the condition (e.g. a queued spinlock) it was busy-waiting on.
+ */
+static long kvm_pvspin_kick_vcpu(struct kvm_vcpu *vcpu)
+{
+	unsigned int target_idx;
+	struct kvm *kvm = vcpu->kvm;
+	struct kvm_vcpu *target = NULL;
+
+	target_idx = smccc_get_arg1(vcpu);
+	target = kvm_get_vcpu(kvm, target_idx);
+	if (!target)
+		return SMCCC_RET_NOT_SUPPORTED;
+
+	target->arch.pv.pv_unhalted = true;
+	kvm_make_request(KVM_REQ_IRQ_PENDING, target);
+	kvm_vcpu_kick(target);
+	if (READ_ONCE(target->ready))
+		kvm_vcpu_yield_to(target);
+
+	return SMCCC_RET_SUCCESS;
+}
+#endif /* CONFIG_PARAVIRT_SPINLOCKS */
+
 int kvm_smccc_call_handler(struct kvm_vcpu *vcpu)
 {
 	struct kvm_smccc_features *smccc_feat = &vcpu->kvm->arch.smccc_feat;
@@ -348,6 +385,13 @@ int kvm_smccc_call_handler(struct kvm_vcpu *vcpu)
 				     &smccc_feat->std_hyp_bmap))
 				val[0] = SMCCC_RET_SUCCESS;
 			break;
+#ifdef CONFIG_PARAVIRT_SPINLOCKS
+		case ARM_SMCCC_VENDOR_KICK_CPU:
+			if (!test_bit(KVM_REG_ARM_VENDOR_HYP_BIT_NOPVSPINLOCK,
+				      &smccc_feat->vendor_hyp_bmap))
+				val[0] = SMCCC_RET_SUCCESS;
+			break;
+#endif /* CONFIG_PARAVIRT_SPINLOCKS */
 		}
 		break;
 	case ARM_SMCCC_HV_PV_TIME_FEATURES:
@@ -363,6 +407,11 @@ int kvm_smccc_call_handler(struct kvm_vcpu *vcpu)
 		if (gpa != INVALID_GPA)
 			val[0] = gpa;
 		break;
+#ifdef CONFIG_PARAVIRT_SPINLOCKS
+	case ARM_SMCCC_VENDOR_KICK_CPU:
+		val[0] = kvm_pvspin_kick_vcpu(vcpu);
+		break;
+#endif /* CONFIG_PARAVIRT_SPINLOCKS */
 	case ARM_SMCCC_VENDOR_HYP_CALL_UID_FUNC_ID:
 		uuid = ARM_SMCCC_VENDOR_HYP_UID_KVM;
 		val[0] = smccc_uuid_to_reg(&uuid, 0);

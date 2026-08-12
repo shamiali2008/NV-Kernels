@@ -8,6 +8,9 @@
 #include <asm/qspinlock.h>
 #include <asm/qrwlock.h>
 
+/* How long a lock should spin before we consider blocking */
+#define SPIN_THRESHOLD			(1 << 15)
+
 /* See include/linux/spinlock.h */
 #define smp_mb__after_spinlock()	smp_mb()
 #define vcpu_is_preempted vcpu_is_preempted

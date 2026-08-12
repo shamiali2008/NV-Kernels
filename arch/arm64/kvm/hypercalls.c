@@ -9,6 +9,8 @@
 #include <kvm/arm_hypercalls.h>
 #include <kvm/arm_psci.h>
 
+#include "trace.h"
+
 #define KVM_ARM_SMCCC_STD_FEATURES				\
 	GENMASK(KVM_REG_ARM_STD_BMAP_BIT_COUNT - 1, 0)
 #define KVM_ARM_SMCCC_STD_HYP_FEATURES				\
@@ -297,6 +299,8 @@ static long kvm_pvspin_kick_vcpu(struct kvm_vcpu *vcpu)
 	kvm_vcpu_kick(target);
 	if (READ_ONCE(target->ready))
 		kvm_vcpu_yield_to(target);
+
+	trace_kvm_pvspin_kick_vcpu(vcpu->vcpu_id, target->vcpu_id);
 
 	return SMCCC_RET_SUCCESS;
 }

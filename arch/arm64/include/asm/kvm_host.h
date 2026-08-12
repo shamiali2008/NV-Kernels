@@ -923,6 +923,13 @@ struct kvm_vcpu_arch {
 		gpa_t base;
 	} pv_lock;
 
+#ifdef CONFIG_PARAVIRT_SPINLOCKS
+	/* pv related host specific info */
+	struct {
+		bool pv_unhalted;
+	} pv;
+#endif
+
 	/* Per-vcpu CCSIDR override or NULL */
 	u32 *ccsidr;
 
@@ -1368,6 +1375,15 @@ static inline bool kvm_arm_is_pvlock_preempted_ready(struct kvm_vcpu_arch *vcpu_
 
 gpa_t kvm_init_pvlock(struct kvm_vcpu *vcpu);
 void kvm_update_pvlock_preempted(struct kvm_vcpu *vcpu, u64 preempted);
+
+#ifdef CONFIG_PARAVIRT_SPINLOCKS
+static inline void kvm_arm_pvspin_vcpu_init(struct kvm_vcpu_arch *vcpu_arch)
+{
+	vcpu_arch->pv.pv_unhalted = false;
+}
+#else
+static inline void kvm_arm_pvspin_vcpu_init(struct kvm_vcpu_arch *vcpu_arch) {}
+#endif
 
 struct kvm_vcpu *kvm_mpidr_to_vcpu(struct kvm *kvm, unsigned long mpidr);
 

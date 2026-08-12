@@ -378,6 +378,11 @@ enum {
 enum {
 	KVM_REG_ARM_VENDOR_HYP_BIT_FUNC_FEAT	= 0,
 	KVM_REG_ARM_VENDOR_HYP_BIT_PTP		= 1,
+	/*
+	 * Negative polarity: when set the guest is told PV queued spinlock is
+	 * not usable. Cleared by userspace to enable it. Defaults to set (off).
+	 */
+	KVM_REG_ARM_VENDOR_HYP_BIT_NOPVSPINLOCK	= 2,
 #ifdef __KERNEL__
 	KVM_REG_ARM_VENDOR_HYP_BMAP_BIT_COUNT,
 #endif

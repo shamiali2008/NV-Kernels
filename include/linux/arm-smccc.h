@@ -186,7 +186,7 @@
 /* End of pKVM hypercall range */
 #define ARM_SMCCC_KVM_FUNC_DISCOVER_IMPL_VER	64
 #define ARM_SMCCC_KVM_FUNC_DISCOVER_IMPL_CPUS	65
-
+#define ARM_SMCCC_KVM_FUNC_PV_LOCK		66
 #define ARM_SMCCC_KVM_FUNC_FEATURES_2		127
 #define ARM_SMCCC_KVM_NUM_FUNCS			128
 
@@ -261,6 +261,13 @@
 			   ARM_SMCCC_SMC_64,			\
 			   ARM_SMCCC_OWNER_STANDARD_HYP,	\
 			   0x21)
+
+/* Paravirtualised lock calls */
+#define ARM_SMCCC_VENDOR_HYP_KVM_PV_LOCK_FUNC_ID		\
+	ARM_SMCCC_CALL_VAL(ARM_SMCCC_FAST_CALL,			\
+			   ARM_SMCCC_SMC_64,			\
+			   ARM_SMCCC_OWNER_VENDOR_HYP,		\
+			   ARM_SMCCC_KVM_FUNC_PV_LOCK)
 
 /* TRNG entropy source calls (defined by ARM DEN0098) */
 #define ARM_SMCCC_TRNG_VERSION					\

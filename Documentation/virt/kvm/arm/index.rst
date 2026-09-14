@@ -11,5 +11,6 @@ ARM
    hyp-abi
    hypercalls
    pvtime
+   pvlock
    ptp_kvm
    vcpu-features

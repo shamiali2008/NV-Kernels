@@ -417,7 +417,7 @@ static inline bool cxl_region_contains_soft_reserve(struct resource *res)
 }
 #endif
 
-enum cxl_regloc_type;
+#include <cxl/pci.h>
 
 #if IS_ENABLED(CONFIG_CXL_BUS)
 

@@ -118,6 +118,9 @@ static bool kvm_smccc_test_fw_bmap(struct kvm_vcpu *vcpu, u32 func_id)
 	case ARM_SMCCC_VENDOR_HYP_KVM_PTP_FUNC_ID:
 		return test_bit(KVM_REG_ARM_VENDOR_HYP_BIT_PTP,
 				&smccc_feat->vendor_hyp_bmap);
+	case ARM_SMCCC_VENDOR_HYP_KVM_PV_LOCK_FUNC_ID:
+		return test_bit(KVM_REG_ARM_VENDOR_HYP_BIT_PV_LOCK,
+				&smccc_feat->vendor_hyp_bmap_2);
 	default:
 		return false;
 	}
@@ -352,6 +355,11 @@ int kvm_smccc_call_handler(struct kvm_vcpu *vcpu)
 		break;
 	case ARM_SMCCC_HV_PV_TIME_ST:
 		gpa = kvm_init_stolen_time(vcpu);
+		if (gpa != INVALID_GPA)
+			val[0] = gpa;
+		break;
+	case ARM_SMCCC_VENDOR_HYP_KVM_PV_LOCK_FUNC_ID:
+		gpa = kvm_init_pvlock(vcpu);
 		if (gpa != INVALID_GPA)
 			val[0] = gpa;
 		break;

@@ -918,6 +918,11 @@ struct kvm_vcpu_arch {
 		gpa_t base;
 	} steal;
 
+	/* Guest PV lock state */
+	struct {
+		gpa_t base;
+	} pv_lock;
+
 	/* Per-vcpu CCSIDR override or NULL */
 	u32 *ccsidr;
 
@@ -1343,6 +1348,19 @@ static inline bool kvm_arm_is_pvtime_enabled(struct kvm_vcpu_arch *vcpu_arch)
 {
 	return (vcpu_arch->steal.base != INVALID_GPA);
 }
+
+static inline void kvm_arm_pvlock_preempted_init(struct kvm_vcpu_arch *vcpu_arch)
+{
+	vcpu_arch->pv_lock.base = INVALID_GPA;
+}
+
+static inline bool kvm_arm_is_pvlock_preempted_ready(struct kvm_vcpu_arch *vcpu_arch)
+{
+	return (vcpu_arch->pv_lock.base != INVALID_GPA);
+}
+
+gpa_t kvm_init_pvlock(struct kvm_vcpu *vcpu);
+void kvm_update_pvlock_preempted(struct kvm_vcpu *vcpu, u64 preempted);
 
 struct kvm_vcpu *kvm_mpidr_to_vcpu(struct kvm *kvm, unsigned long mpidr);
 

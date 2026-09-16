@@ -252,6 +252,9 @@ CONFIG_NVIDIA_TEGRA410_C2C_PMU                  note<'LP: #2139315'>
 CONFIG_NVIDIA_TEGRA410_CMEM_LATENCY_PMU         policy<{'arm64': 'm'}>
 CONFIG_NVIDIA_TEGRA410_CMEM_LATENCY_PMU         note<'LP: #2139315'>
 
+CONFIG_PARAVIRT_SPINLOCKS                       policy<{'amd64': 'y', 'arm64': 'y'}>
+CONFIG_PARAVIRT_SPINLOCKS                       note<'arm64 PV queued spinlock (park with WFI, kick via KVM hypercall) for oversubscribed VMs'>
+
 CONFIG_PCIEAER_CXL                              policy<{'amd64': '-', 'arm64': '-'}>
 CONFIG_PCIEAER_CXL                              note<'Removed by commit d18f1b7beadf (PCI/AER: Replace PCIEAER_CXL symbol with CXL_RAS)'>
 

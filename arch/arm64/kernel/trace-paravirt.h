@@ -23,7 +23,7 @@ TRACE_EVENT(kvm_kick_cpu,
 	),
 
 	TP_fast_assign(
-		__assign_str(name, name);
+		__assign_str(name);
 		__entry->cpu = cpu;
 		__entry->target = target;
 	),
@@ -45,7 +45,7 @@ TRACE_EVENT(kvm_wait,
 	),
 
 	TP_fast_assign(
-		__assign_str(name, name);
+		__assign_str(name);
 		__entry->cpu = cpu;
 	),
 
